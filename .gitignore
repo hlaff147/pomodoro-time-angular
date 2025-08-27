@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.tmp/
+.cache/
+.angular/cache
+
+# Mac, Linux, Windows extras
+.DS_Store
+Thumbs.db

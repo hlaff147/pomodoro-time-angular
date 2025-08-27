@@ -1,0 +1,25 @@
+.pomodoro {
+  text-align: center;
+}
+
+.display {
+  font-size: 3rem;
+  margin: 1rem 0;
+}
+
+.controls button {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+
+.settings {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.settings input {
+  width: 3rem;
+}
