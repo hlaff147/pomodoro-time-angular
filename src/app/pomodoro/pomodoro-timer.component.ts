@@ -1,58 +1,80 @@
-import { Component, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { PomodoroService } from './pomodoro.service';
+import { TimerState } from './timer-state.enum';
+import { TIMER_CONSTANTS } from './timer.constants';
+import { TimerConfig } from './timer.types';
+import { formatTime as formatTimeUtil } from './timer.utils';
 
 @Component({
   selector: 'app-pomodoro-timer',
   templateUrl: './pomodoro-timer.component.html',
   styleUrls: ['./pomodoro-timer.component.css']
 })
-export class PomodoroTimerComponent implements OnDestroy {
-  workDuration = 25;
-  breakDuration = 5;
-  mode: 'work' | 'break' = 'work';
-  remaining$ = this.pomodoro.remaining$;
-  private completionSub?: Subscription;
+export class PomodoroTimerComponent implements OnInit, OnDestroy {
+  // Observables do service
+  readonly remaining$: Observable<number>;
+  readonly mode$: Observable<TimerState>;
+  readonly isRunning$: Observable<boolean>;
+  readonly isCompleted$: Observable<boolean>;
 
-  constructor(private pomodoro: PomodoroService) {}
+  // Configurações
+  private readonly defaultConfig: TimerConfig = {
+    workDuration: TIMER_CONSTANTS.DEFAULT_WORK_DURATION,
+    breakDuration: TIMER_CONSTANTS.DEFAULT_BREAK_DURATION
+  };
 
-  start(): void {
-    this.cancelCompletionWatcher();
-    const duration = (this.mode === 'work' ? this.workDuration : this.breakDuration) * 60;
-    this.pomodoro.start(duration);
-    this.completionSub = this.remaining$.subscribe(v => {
-      if (v === 0) {
-        this.mode = this.mode === 'work' ? 'break' : 'work';
-        this.start();
-      }
-    });
+  // Expor enum para o template
+  readonly TimerState = TimerState;
+
+  // Subject para gerenciar destruição do componente
+  private readonly destroy$ = new Subject<void>();
+
+  constructor(private readonly pomodoroService: PomodoroService) {
+    // Inicializar observables
+    this.remaining$ = this.pomodoroService.remaining$;
+    this.mode$ = this.pomodoroService.mode$;
+    this.isRunning$ = this.pomodoroService.isRunning$;
+    this.isCompleted$ = this.pomodoroService.isCompleted$;
   }
 
-  pause(): void {
-    this.pomodoro.stop();
-    this.cancelCompletionWatcher();
-  }
-
-  reset(): void {
-    this.pause();
-    this.mode = 'work';
-    this.pomodoro.start(this.workDuration * 60);
-    this.pause();
-  }
-
-  private cancelCompletionWatcher(): void {
-    this.completionSub?.unsubscribe();
-    this.completionSub = undefined;
+  ngOnInit(): void {
+    // Configurar o service com as configurações padrão
+    this.pomodoroService.updateConfig(this.defaultConfig);
   }
 
   ngOnDestroy(): void {
-    this.pomodoro.stop();
-    this.cancelCompletionWatcher();
+    // Parar o timer e limpar recursos
+    this.pomodoroService.stop();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
+  // Métodos de controle do timer
+  start(): void {
+    this.pomodoroService.start();
+  }
+
+  pause(): void {
+    this.pomodoroService.pause();
+  }
+
+  reset(): void {
+    this.pomodoroService.reset();
+  }
+
+  switchMode(): void {
+    this.pomodoroService.switchMode();
+  }
+
+  setMode(mode: TimerState): void {
+    this.pomodoroService.setMode(mode);
+  }
+
+  // Método utilitário para formatação de tempo (usado no template)
   formatTime(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-    const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
+    return formatTimeUtil(totalSeconds);
   }
 }
+

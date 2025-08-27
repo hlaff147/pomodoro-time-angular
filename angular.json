@@ -53,5 +53,7 @@
       }
     }
   },
-  "defaultProject": "pomodoro-time-angular"
+  "cli": {
+    "analytics": "d3dcef96-b0d3-4405-89a1-0c9fe3468bc3"
+  }
 }

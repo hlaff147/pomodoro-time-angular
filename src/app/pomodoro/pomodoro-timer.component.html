@@ -1,12 +1,20 @@
-<div class="pomodoro">
-  <h2>{{ mode === 'work' ? 'Work Session' : 'Break Session' }}</h2>
-  <div class="display">{{ formatTime((remaining$ | async) ?? 0) }}</div>
-  <div class="controls">
-    <button (click)="start()">Start</button>
-    <button (click)="pause()">Pause</button>
+<div class="pomodoro" [ngClass]="{'work-mode': (mode$ | async) === TimerState.Work, 'break-mode': (mode$ | async) === TimerState.Break}">
+  <div class="tabs">
+    <div class="tab" [ngClass]="{'active': (mode$ | async) === TimerState.Work}" (click)="setMode(TimerState.Work)">Work</div>
+    <div class="tab" [ngClass]="{'active': (mode$ | async) === TimerState.Break}" (click)="setMode(TimerState.Break)">Break</div>
   </div>
-  <div class="settings">
-    <label>Work (min): <input type="number" [(ngModel)]="workDuration" min="1"></label>
-    <label>Break (min): <input type="number" [(ngModel)]="breakDuration" min="1"></label>
+  
+  <h2>{{ (mode$ | async) === TimerState.Work ? 'Work Session' : 'Break Session' }}</h2>
+  
+  <div class="display">{{ formatTime((remaining$ | async) ?? 0) }}</div>
+  
+  <div class="controls">
+    <button (click)="start()" [disabled]="(isRunning$ | async)">Start</button>
+    <button (click)="pause()" [disabled]="!(isRunning$ | async)">Pause</button>
+    <button (click)="reset()">Reset</button>
+  </div>
+  
+  <div class="status" *ngIf="(isCompleted$ | async)">
+    <p>Session completed! Switching to {{ (mode$ | async) === TimerState.Work ? 'Break' : 'Work' }} mode...</p>
   </div>
 </div>

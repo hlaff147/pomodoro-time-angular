@@ -7,3 +7,27 @@ dist/
 # Mac, Linux, Windows extras
 .DS_Store
 Thumbs.db
+# IDEs
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Angular build
+out-tsc/
+coverage/
+
+# System
+*.swp
